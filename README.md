@@ -26,10 +26,10 @@
 
 ## Battle Overview
 
-> You play the role of a **prompt / instruction engineer**.  
+> You play the role of a **prompt / instruction engineer**.
 > Your task is to write instruction files that guide an AI coding agent to implement the missing business logic so that **all test cases pass**.
 
-Place your instruction files inside the `./agents/` folder (create it if it does not exist).  
+Place your instruction files inside the `./agents/` folder (create it if it does not exist).
 The AI agent will read those instructions and implement the code; you are **not** expected to write Java yourself.
 
 ---
