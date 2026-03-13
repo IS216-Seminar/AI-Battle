@@ -1,5 +1,4 @@
 package uit.is216.ai.battle.demo.dtos;
 
-public class LoginRequest {
-    
+public record LoginRequest(String email, String password) {
 }

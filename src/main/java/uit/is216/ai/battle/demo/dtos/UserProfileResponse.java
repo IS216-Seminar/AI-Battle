@@ -1,5 +1,7 @@
 package uit.is216.ai.battle.demo.dtos;
 
-public class UserProfileResponse {
-    
+import java.time.LocalDateTime;
+
+public record UserProfileResponse(String id, String fullName, String email, LocalDateTime createdAt,
+        LocalDateTime updatedAt) {
 }
