@@ -1,7 +1,13 @@
-COMPOSE ?= docker compose
+COMPOSE ?= podman compose
 ENV_FILE ?= .env
 
 .PHONY: up down logs format help
+
+dev up:
+	$(COMPOSE) up -d
+
+dev down:
+	$(COMPOSE) down
 
 up: ## Start containers in detached mode (using $(ENV_FILE))
 	$(COMPOSE) --env-file $(ENV_FILE) up -d --build
@@ -13,7 +19,7 @@ logs: ## Tail container logs
 	$(COMPOSE) logs -f --tail=200
 
 format: ## Format Java source code
-	./mvnw -q net.revelc.code.formatter:formatter-maven-plugin:2.24.1:format
+	mvn -q net.revelc.code.formatter:formatter-maven-plugin:2.24.1:format
 
 help: ## Show available commands
 	@printf "Available commands:\n"

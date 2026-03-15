@@ -1,4 +1,4 @@
-FROM docker.io/library/maven:3.9-eclipse-temurin-21 AS builder
+FROM docker.io/library/maven:3.9-eclipse-temurin-25 AS builder
 
 WORKDIR /app
 
@@ -9,7 +9,7 @@ RUN mvn clean package -DskipTests -B
 
 RUN java -Djarmode=layertools -jar target/*.jar extract
 
-FROM docker.io/library/eclipse-temurin:21-jre AS runtime
+FROM docker.io/library/eclipse-temurin:25-jre AS runtime
 
 WORKDIR /app
 

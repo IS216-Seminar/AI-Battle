@@ -7,7 +7,7 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-ai_battle_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ai_battle_password}
     ports:
-      - ${HOST_POSTGRES_PORT:-5432}:5432
+      - ${HOST_POSTGRES_PORT:-5435}:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:

@@ -1,0 +1,5 @@
+- You need to separate the service and service implement to follow the D principle in SOLID concept, let's create a directory of impl for service and implement the inteface service later on 
+- let's create the response dto to return the correct response base on Acceptance Criteria (Test Cases)
+- You also need to create OpenAPI document with title Claude Haiku agent 
+- move all the related securities to dir securities and rename properly all the file ( there is no first letter I (as interface))
+- You need to add the response for access token and refresh token when user sign up 
