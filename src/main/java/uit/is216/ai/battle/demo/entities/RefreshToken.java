@@ -1,12 +1,15 @@
 package uit.is216.ai.battle.demo.entities;
+
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.Instant;
 
 @Entity
 @Table(name = "refresh_tokens")
-@Getter @Setter
-@NoArgsConstructor @AllArgsConstructor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class RefreshToken {
     @Id

@@ -1,4 +1,5 @@
 package uit.is216.ai.battle.demo.repositories;
+
 import java.util.UUID;
 import uit.is216.ai.battle.demo.entities.User;
 import org.springframework.data.jpa.repository.JpaRepository;

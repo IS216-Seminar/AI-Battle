@@ -26,17 +26,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureMockMvc
 public class AuthStressTest {
     private static final Logger log = LoggerFactory.getLogger(AuthStressTest.class);
-    @Autowired private MockMvc mockMvc;
-    @Autowired private UserRepository userRepository;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private UserRepository userRepository;
     private String validToken;
+
     @BeforeEach
     void setup() throws Exception {
-        userRepository.deleteAll(); 
+        userRepository.deleteAll();
         // Khởi tạo user mẫu
         String signupJson = "{\"email\": \"user@gmail.com\", \"password\": \"123456\", \"confirmPassword\": \"123456\"}";
         mockMvc.perform(post("/public/auth/signup").contentType(MediaType.APPLICATION_JSON).content(signupJson));
         String loginJson = "{\"email\": \"user@gmail.com\", \"password\": \"123456\"}";
-        MvcResult result = mockMvc.perform(post("/public/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson)).andReturn();
+        MvcResult result = mockMvc
+                .perform(post("/public/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson))
+                .andReturn();
         String response = result.getResponse().getContentAsString();
         // Trích xuất token an toàn hơn
         if (response.contains("accessToken")) {
@@ -55,9 +60,7 @@ public class AuthStressTest {
             executor.execute(() -> {
                 try {
                     String json = "{\"email\": \"user@gmail.com\", \"password\": \"123456\"}";
-                    mockMvc.perform(post("/public/auth/login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json))
+                    mockMvc.perform(post("/public/auth/login").contentType(MediaType.APPLICATION_JSON).content(json))
                             .andExpect(status().isOk());
                     successCount.incrementAndGet();
                 } catch (Throwable e) {
@@ -83,12 +86,14 @@ public class AuthStressTest {
             executor.execute(() -> {
                 try {
                     String json = "{\"email\": \"race@gmail.com\", \"password\": \"123\", \"confirmPassword\": \"123\"}";
-                    MvcResult res = mockMvc.perform(post("/public/auth/signup")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(json)).andReturn();                   
+                    MvcResult res = mockMvc
+                            .perform(post("/public/auth/signup").contentType(MediaType.APPLICATION_JSON).content(json))
+                            .andReturn();
                     int status = res.getResponse().getStatus();
-                    if (status == 201) successCount.incrementAndGet();
-                    else if (status == 409) conflictCount.incrementAndGet();
+                    if (status == 201)
+                        successCount.incrementAndGet();
+                    else if (status == 409)
+                        conflictCount.incrementAndGet();
                 } catch (Exception e) {
                     log.error("STRESS_SIGNUP_ERROR: {}", e.getMessage());
                 }
@@ -96,7 +101,8 @@ public class AuthStressTest {
         }
         executor.shutdown();
         executor.awaitTermination(1, TimeUnit.MINUTES);
-        log.info("--- RACE CONDITION RESULT: Created: {}, Conflicts (Expected): {} ---", successCount.get(), conflictCount.get());
+        log.info("--- RACE CONDITION RESULT: Created: {}, Conflicts (Expected): {} ---", successCount.get(),
+                conflictCount.get());
         assertThat(successCount.get()).isEqualTo(1); // Chỉ DUY NHẤT 1 user được tạo thành công
     }
 
@@ -111,14 +117,12 @@ public class AuthStressTest {
             executor.execute(() -> {
                 try {
                     if (index % 2 == 0) {
-                        mockMvc.perform(post("/public/auth/login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"email\": \"user@gmail.com\", \"password\": \"123456\"}"))
-                            .andExpect(status().isOk());
+                        mockMvc.perform(post("/public/auth/login").contentType(MediaType.APPLICATION_JSON)
+                                .content("{\"email\": \"user@gmail.com\", \"password\": \"123456\"}"))
+                                .andExpect(status().isOk());
                     } else {
-                        mockMvc.perform(get("/user/profile")
-                            .header("Authorization", "Bearer " + validToken))
-                            .andExpect(status().isOk());
+                        mockMvc.perform(get("/user/profile").header("Authorization", "Bearer " + validToken))
+                                .andExpect(status().isOk());
                     }
                     processed.incrementAndGet();
                 } catch (Throwable e) {

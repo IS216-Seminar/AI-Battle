@@ -1,13 +1,8 @@
 
 package uit.is216.ai.battle.demo;
-// Các Annotation và Class thiếu
-import uit.is216.ai.battle.demo.entities.User;
-import uit.is216.ai.battle.demo.repositories.UserRepository;
-import uit.is216.ai.battle.demo.repositories.RefreshTokenRepository;
-import org.springframework.transaction.annotation.Transactional;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 
+// Các Annotation và Class thiếu
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -15,23 +10,31 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import uit.is216.ai.battle.demo.entities.User;
+import uit.is216.ai.battle.demo.repositories.RefreshTokenRepository;
+import uit.is216.ai.battle.demo.repositories.UserRepository;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional // Đảm bảo mỗi lần test xong dữ liệu sẽ được xóa sạch
 public class AuthIntegrationTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private UserRepository userRepository;
-    @Autowired private RefreshTokenRepository refreshTokenRepository;
-    @Autowired private ObjectMapper objectMapper;
+    @Autowired
+    private MockMvc mockMvc;
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
+    @Autowired
+    private ObjectMapper objectMapper;
 
     // Helper method để tạo nhanh 1 user hợp lệ phục vụ các test case login/profile
     private void createDefaultUser() {
@@ -53,21 +56,20 @@ public class AuthIntegrationTest {
 
         // 2. Login & Check Both Tokens + Refresh Token in DB
         String loginJson = "{\"email\": \"newuser@gmail.com\", \"password\": \"123456\"}";
-        MvcResult loginResult = mockMvc.perform(post("/public/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").exists())
-                .andReturn();
+        MvcResult loginResult = mockMvc
+                .perform(post("/public/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.accessToken").exists())
+                .andExpect(jsonPath("$.refreshToken").exists()).andReturn();
 
         // 3. Check Profile Data
-        String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("accessToken").asText();
-        mockMvc.perform(get("/user/profile").header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
+        String token = objectMapper.readTree(loginResult.getResponse().getContentAsString()).get("accessToken")
+                .asText();
+        mockMvc.perform(get("/user/profile").header("Authorization", "Bearer " + token)).andExpect(status().isOk())
                 .andExpect(jsonPath("$.email").value("newuser@gmail.com")); // Thêm check "correct user data"
 
-        //User user = userRepository.findByEmail("newuser@gmail.com").orElseThrow(); 
-//assertThat(user.getPassword()).startsWith("$2a$");
-//assertThat(refreshTokenRepository.findAll()).isNotEmpty();
+        // User user = userRepository.findByEmail("newuser@gmail.com").orElseThrow();
+        // assertThat(user.getPassword()).startsWith("$2a$");
+        // assertThat(refreshTokenRepository.findAll()).isNotEmpty();
         User user = (User) userRepository.findByEmail("newuser@gmail.com").orElseThrow();
         assertThat(user.getPassword()).startsWith("$2a$");
         assertThat(refreshTokenRepository.findAll()).isNotEmpty();
@@ -111,33 +113,36 @@ public class AuthIntegrationTest {
         mockMvc.perform(post("/public/auth/signup").contentType(MediaType.APPLICATION_JSON).content(dupJson))
                 .andExpect(status().isConflict());
     }
-        @Test
-        void testAccessTokenIsStateless() throws Exception {
+
+    @Test
+    void testAccessTokenIsStateless() throws Exception {
         // 1. Login để lấy token
         String loginJson = "{\"email\": \"newuser@gmail.com\", \"password\": \"123456\"}";
-        MvcResult result = mockMvc.perform(post("/public/auth/login")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(loginJson))
+        MvcResult result = mockMvc
+                .perform(post("/public/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson))
                 .andReturn();
-        
-        String accessToken = objectMapper.readTree(result.getResponse().getContentAsString()).get("accessToken").asText();
+
+        String accessToken = objectMapper.readTree(result.getResponse().getContentAsString()).get("accessToken")
+                .asText();
 
         // 2. Kiểm tra trong Database (Giả sử bạn không có bảng AccessToken)
         assertThat(accessToken).isNotNull();
-        }
-        @Test
-        void testRefreshTokenInvalidation() throws Exception {
+    }
+
+    @Test
+    void testRefreshTokenInvalidation() throws Exception {
         // 1. Login lấy Refresh Token
         createDefaultUser();
         String loginJson = "{\"email\": \"user@gmail.com\", \"password\": \"123456\"}";
-        MvcResult result = mockMvc.perform(post("/public/auth/login")
-                .contentType(MediaType.APPLICATION_JSON).content(loginJson)).andReturn();
-        // 2. Giả lập hành động Invalidate 
-        refreshTokenRepository.deleteAll(); 
-        // 3. Thử dùng Refresh Token đã bị xóa để lấy Access Token mới 
-        String refreshToken = objectMapper.readTree(result.getResponse().getContentAsString()).get("refreshToken").asText();
-        mockMvc.perform(post("/public/auth/refresh")
-                .header("Authorization", "Bearer " + refreshToken))
+        MvcResult result = mockMvc
+                .perform(post("/public/auth/login").contentType(MediaType.APPLICATION_JSON).content(loginJson))
+                .andReturn();
+        // 2. Giả lập hành động Invalidate
+        refreshTokenRepository.deleteAll();
+        // 3. Thử dùng Refresh Token đã bị xóa để lấy Access Token mới
+        String refreshToken = objectMapper.readTree(result.getResponse().getContentAsString()).get("refreshToken")
+                .asText();
+        mockMvc.perform(post("/public/auth/refresh").header("Authorization", "Bearer " + refreshToken))
                 .andExpect(status().isUnauthorized()); // Phải trả về lỗi vì token đã bị invalidate
-        }
+    }
 }
